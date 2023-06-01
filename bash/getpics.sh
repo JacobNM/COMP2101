@@ -6,7 +6,7 @@
 # it summarizes the public_html/pics directory when it is done
 #
 # It should not be run as root
-[ "(whoami)" = "root" ] && echo "Not to be run as root" && exit 1
+[ "$(whoami)" = "root" ] && echo "Not to be run as root" && exit 1
 
 # Task 1: Improve this script to also retrieve and install the files kept in the https://zonzorp.net/pics.tgz tarfile
 #   - use the same kind of testing that is already in the script to only download the tarfile if you don't already have it and
