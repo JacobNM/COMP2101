@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cmdName="$(basename $0)"
+
+cat <<EOF
+
+the variable 1 has '$1' in it
+the variable 2 has '$2' in it
+the variable 3 has '$3' in it
+
+the variable 0 has '$0' in it
+
+Command used to run this script was $cmdName
+interesting, innit?
+
+Now we can shift things left
+EOF
+
+shift
+
+cat << EOF

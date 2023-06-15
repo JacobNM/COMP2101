@@ -23,11 +23,11 @@ Computer_Serial_Numer=$(sudo lshw | grep -w "serial:" | head -n 1 | sed 's/ *ser
 # CPU variables
 CPU_Manufacturer=$(sudo lshw -C processor | grep -w "product" | head -n 1 | sed 's/ *product: //')
 CPU_Architecture=$(hostnamectl | grep Architecture | sed 's/  *Architecture: //')
-CPU_Max_Speed=$(sudo dmidecode -t processor | grep Hz | head -n 1 | sed 's/ *Max Speed://')
+CPU_Max_Speed=$(sudo lshw -class cpu | grep capacity | head -n 1 | sed 's/.*capacity: //')
 CPU_Total_Cores=$(( $(lscpu | awk '/^Socket\(s\)/{ print $2 }') * $(lscpu | awk '/^Core\(s\) per socket/{ print $4 }') ))
-CPU_L1_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L1 | sed 's/K/KBs/' | sed '2 s/L1/                                 L1/')
-CPU_L2_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L2 | sed 's/K/KBs/')
-CPU_L3_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L3 | sed 's/M/MBs/' )
+CPU_L1_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L1 | sed 's/K/KB/' | sed '2 s/L1/                                 L1/')
+CPU_L2_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L2 | sed 's/K/KB/')
+CPU_L3_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L3 | sed 's/M/MB/' )
 
 
 # Script will Search for PC hostname, print available IP addresses of host (not including 127 networks)
@@ -57,7 +57,7 @@ CPU Information
 CPU Manufacturer/Model:          $CPU_Manufacturer
 CPU Architecture:                $CPU_Architecture
 CPU Core Total:                  $CPU_Total_Cores
-CPU Max Speed:                 $CPU_Max_Speed
+CPU Max Speed:                   $CPU_Max_Speed
 CPU L1 Cache Size:               $CPU_L1_Cache_Size
 CPU L2 Cache Size:               $CPU_L2_Cache_Size
 CPU L3 Cache Size:               $CPU_L3_Cache_Size
@@ -68,5 +68,18 @@ Operating System Information
 Operating System:                $NAME
 Version:                         $VERSION
 ============================
+
+Ram Information
+===============
+
+
+===============
+
+Disk Storage Information
+========================
+
+
+========================
+
 
 EOF
