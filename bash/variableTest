@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#=([1]="sudo lshw" C processor" [2]="sudo lshw -C)
+#Computer_Model=$varLSHW
+#variantsForLSHW=([1]="sudo lshw" 
+#[2]="sudo lshw -C system" 
+#[3]="sudo lshw -C cpu")
+
+#${variantsForLSHW[2]} 
+
+
+#sudo lshw -class cpu | grep -w "product" | head -n 1 | sed 's/ *product: //'
+#sudo lshw | grep -w "product" | head -n 1 | sed 's/ *product: //'
+#sudo lshw -C system | grep -w "product" | head -n 1 | sed 's/ *product: //'
+
+#Computer Model: $Computer_Model
+
+#lshwOutput=$(sudo lshw)
+#echo "$lshwOutput" | grep product
+lscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
+${lscpuVariants[2]}
