@@ -9,6 +9,10 @@ source /etc/os-release
 
 ## Variable list
 
+# Inspection tools
+lshwOutput=$(sudo lshw)
+lscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
+
 # Basic Info variables
 Current_Time=$(date +"%I:%M%p %Z")
 MY_FQDN=$(hostname -f)
@@ -17,17 +21,17 @@ Root_FileSystem_Space=$(df -h -t ext4 --output=avail | tail -1 | sed 's/  *//')
 
 # System variables
 Computer_Manufacturer=$(sudo dmidecode -s system-manufacturer)
-Computer_Model=$(sudo lshw -C system | grep -w "product" | head -n 1 | sed 's/ *product: //')
-Computer_Serial_Numer=$(sudo lshw | grep -w "serial:" | head -n 1 | sed 's/ *serial: //')
+Computer_Model=$(echo "$lshwOutput" | grep -w "product" | head -n 1 | sed 's/.*product: //')
+Computer_Serial_Numer=$(echo "$lshwOutput" | grep -w "serial:" | head -n 1 | sed 's/ *serial: //')
 
 # CPU variables
-CPU_Manufacturer=$(sudo lshw -C processor | grep -w "product" | head -n 1 | sed 's/ *product: //')
+CPU_Manufacturer=$(echo "$lshwOutput" | grep -a2 cpu:0 | tail -n 1 | sed 's/.*product: //')
 CPU_Architecture=$(hostnamectl | grep Architecture | sed 's/  *Architecture: //')
-CPU_Max_Speed=$(sudo lshw -class cpu | grep capacity | head -n 1 | sed 's/.*capacity: //')
-CPU_Total_Cores=$(( $(lscpu | awk '/^Socket\(s\)/{ print $2 }') * $(lscpu | awk '/^Core\(s\) per socket/{ print $4 }') ))
-CPU_L1_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L1 | sed 's/K/KB/' | sed '2 s/L1/                                 L1/')
-CPU_L2_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L2 | sed 's/K/KB/')
-CPU_L3_Cache_Size=$(sudo lscpu --caches=NAME,ONE-SIZE | grep L3 | sed 's/M/MB/' )
+CPU_Max_Speed=$(echo "$lshwOutput" | grep capacity | head -n 1 | sed 's/.*capacity: //')
+CPU_Total_Cores=$(( $(${lscpuVariants[1]} | awk '/^Socket\(s\)/{ print $2 }') * $(lscpu | awk '/^Core\(s\) per socket/{ print $4 }') ))
+CPU_L1_Cache_Size=$(${lscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/                                 L1/')
+CPU_L2_Cache_Size=$(${lscpuVariants[2]} | grep L2 | sed 's/K/KB/')
+CPU_L3_Cache_Size=$(${lscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
 
 
 # Script will Search for PC hostname, print available IP addresses of host (not including 127 networks)
