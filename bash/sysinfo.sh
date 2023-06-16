@@ -33,6 +33,15 @@ CPU_L1_Cache_Size=$(${lscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/
 CPU_L2_Cache_Size=$(${lscpuVariants[2]} | grep L2 | sed 's/K/KB/')
 CPU_L3_Cache_Size=$(${lscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
 
+# RAM variables
+RAM_Manufacturer=$(sudo dmidecode -t memory | grep -i manufacturer | head -n1 | sed 's/.*Manufacturer: //')
+if [[ "${RAM_Manufacturer}" == "Not Specified" ]]; then
+    RAM_Manufacturer="N/A with VMs"
+fi
+RAM_Size=$(echo "$lshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
+
+RAM_Table=$(paste -d ';' <(echo "$RAM_Manufacturer ") <(echo "$RAM_Size ") |
+    column -N Manufacturer,Size -s ';' -t)
 
 # Script will Search for PC hostname, print available IP addresses of host (not including 127 networks)
 # checks available space in root system, displayed as human-friendly text output
@@ -49,7 +58,7 @@ IP Address:                      $My_IP
 Root Filesystem Space Remaining: $Root_FileSystem_Space
 ======================
 
-System Description
+System Information
 ==================
 Manufacturer/Vendor:             $Computer_Manufacturer
 Computer Description:            $Computer_Model
@@ -73,11 +82,11 @@ Operating System:                $NAME
 Version:                         $VERSION
 ============================
 
-Ram Information
+RAM Information
 ===============
+$RAM_Table
 
-
-===============
+===============    
 
 Disk Storage Information
 ========================
