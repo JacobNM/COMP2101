@@ -10,8 +10,9 @@ source /etc/os-release
 ## Variable list
 
 # Inspection tools
-lshwOutput=$(sudo lshw)
-lscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
+LshwOutput=$(sudo lshw)
+DmidecodeOutput=$(sudo dmidecode -t 17)
+LscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
 
 # Basic Info variables
 Current_Time=$(date +"%I:%M%p %Z")
@@ -21,27 +22,35 @@ Root_FileSystem_Space=$(df -h -t ext4 --output=avail | tail -1 | sed 's/  *//')
 
 # System variables
 Computer_Manufacturer=$(sudo dmidecode -s system-manufacturer)
-Computer_Model=$(echo "$lshwOutput" | grep -w "product" | head -n 1 | sed 's/.*product: //')
-Computer_Serial_Numer=$(echo "$lshwOutput" | grep -w "serial:" | head -n 1 | sed 's/ *serial: //')
+Computer_Model=$(echo "$LshwOutput" | grep -w "product" | head -n 1 | sed 's/.*product: //')
+Computer_Serial_Numer=$(echo "$LshwOutput" | grep -w "serial:" | head -n 1 | sed 's/ *serial: //')
 
 # CPU variables
-CPU_Manufacturer=$(echo "$lshwOutput" | grep -a2 cpu:0 | tail -n 1 | sed 's/.*product: //')
+CPU_Manufacturer=$(echo "$LshwOutput" | grep -a2 cpu:0 | tail -n 1 | sed 's/.*product: //')
 CPU_Architecture=$(hostnamectl | grep Architecture | sed 's/  *Architecture: //')
-CPU_Max_Speed=$(echo "$lshwOutput" | grep capacity | head -n 1 | sed 's/.*capacity: //')
-CPU_Total_Cores=$(( $(${lscpuVariants[1]} | awk '/^Socket\(s\)/{ print $2 }') * $(lscpu | awk '/^Core\(s\) per socket/{ print $4 }') ))
-CPU_L1_Cache_Size=$(${lscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/                                 L1/')
-CPU_L2_Cache_Size=$(${lscpuVariants[2]} | grep L2 | sed 's/K/KB/')
-CPU_L3_Cache_Size=$(${lscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
+CPU_Max_Speed=$(echo "$LshwOutput" | grep capacity | head -n 1 | sed 's/.*capacity: //')
+CPU_Total_Cores=$(( $(${LscpuVariants[1]} | awk '/^Socket\(s\)/{ print $2 }') * $(lscpu | awk '/^Core\(s\) per socket/{ print $4 }') ))
+CPU_L1_Cache_Size=$(${LscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/                                 L1/')
+CPU_L2_Cache_Size=$(${LscpuVariants[2]} | grep L2 | sed 's/K/KB/')
+CPU_L3_Cache_Size=$(${LscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
 
 # RAM variables
-RAM_Manufacturer=$(sudo dmidecode -t memory | grep -i manufacturer | head -n1 | sed 's/.*Manufacturer: //')
+RAM_Manufacturer=$(echo "$DmidecodeOutput" | grep -i manufacturer | head -n1 | sed 's/.*Manufacturer: //')
 if [[ "${RAM_Manufacturer}" == "Not Specified" ]]; then
     RAM_Manufacturer="N/A with VMs"
 fi
-RAM_Size=$(echo "$lshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
 
-RAM_Table=$(paste -d ';' <(echo "$RAM_Manufacturer ") <(echo "$RAM_Size ") |
-    column -N Manufacturer,Size -s ';' -t)
+RAM_Model=$(echo "$DmidecodeOutput" | grep -w "Serial Number" | head -n1 | sed 's/.*Serial Number: //')
+if [[ "${RAM_Model}" == "Not Specified" ]]; then
+    RAM_Model="N/A with VMs"
+fi
+
+RAM_Size=$(echo "$LshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
+
+
+
+RAM_Table=$(paste -d ';' <(echo "$RAM_Manufacturer ") <(echo "$RAM_Model ") <(echo "$RAM_Size ") |
+    column -N Manufacturer,Model,Size -s ';' -t)
 
 # Script will Search for PC hostname, print available IP addresses of host (not including 127 networks)
 # checks available space in root system, displayed as human-friendly text output
