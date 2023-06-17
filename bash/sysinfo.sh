@@ -34,21 +34,28 @@ CPU_L1_Cache_Size=$(${LscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/
 CPU_L2_Cache_Size=$(${LscpuVariants[2]} | grep L2 | sed 's/K/KB/')
 CPU_L3_Cache_Size=$(${LscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
 
-# RAM variables
-RAM_Manufacturer=$(echo "$DmidecodeOutput" | grep -i manufacturer | head -n1 | sed 's/.*Manufacturer: //')
-if [[ "${RAM_Manufacturer}" == "Not Specified" ]]; then
-    RAM_Manufacturer="N/A with VMs"
+# RAM/DIMM variables
+DIMM_Manufacturer=$(echo "$DmidecodeOutput" | grep -i manufacturer | head -n1 | sed 's/.*Manufacturer: //')
+if [[ "${DIMM_Manufacturer}" == "Not Specified" ]]; then
+    DIMM_Manufacturer="N/A with VMs"
 fi
 
-RAM_Model=$(echo "$DmidecodeOutput" | grep -w "Serial Number" | head -n1 | sed 's/.*Serial Number: //')
-if [[ "${RAM_Model}" == "Not Specified" ]]; then
-    RAM_Model="N/A with VMs"
+DIMM_Model=$(echo "$DmidecodeOutput" | grep -w "Serial Number" | head -n1 | sed 's/.*Serial Number: //')
+if [[ "${DIMM_Model}" == "Not Specified" ]]; then
+    DIMM_Model="N/A with VMs"
 fi
 
-RAM_Size=$(echo "$LshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
+DIMM_Size=$(echo "$LshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
 
-RAM_Table=$(paste -d ';' <(echo "$RAM_Manufacturer ") <(echo "$RAM_Model ") <(echo "$RAM_Size ") |
-    column -N Manufacturer,Model,Size -s ';' -t)
+DIMM_Speed=$(echo "$DmidecodeOutput" | grep -m1 Speed | sed 's/.*Speed: //')
+if [[ "${DIMM_Speed}" == "Unknown" ]]; then
+   DIMM_Speed="N/A with VMs"
+fi
+
+DIMM_Location=$(echo "$LshwOutput" | grep -m1 'slot: RAM' | sed 's/.*slot: //')
+
+DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(echo "$DIMM_Model ") <(echo "$DIMM_Size ") <(echo "$DIMM_Speed") <(echo "$DIMM_Location") |
+    column -N Manufacturer,Model,Size,Speed,Location -s ';' -t)
 
 # Script will Search for PC hostname, print available IP addresses of host (not including 127 networks)
 # checks available space in root system, displayed as human-friendly text output
@@ -91,7 +98,7 @@ Version:                         $VERSION
 
 RAM Information
 ===============
-$RAM_Table
+$DIMM_Table
 
 ===============    
 
