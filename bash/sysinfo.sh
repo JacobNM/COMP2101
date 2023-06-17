@@ -64,7 +64,7 @@ DIMM_Location=$(echo "$LshwOutput" | grep -m1 'slot: RAM' | sed 's/.*slot: //')
     # Displays total RAM available to determine if all memory components are accounted for
 RAM_Total_Size=$(echo "$LshwOutput" | grep -A10 '\*\-memory' | grep -m1 size | sed 's/.*size: // ')
 
-    # Creates a structured table to output DIMM variables & RAM total memory included above
+    # Creates a structured table to display DIMM variables & RAM total memory included above
 DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer") <(
     echo "$DIMM_Model") <(echo "$DIMM_Size") <(echo "$DIMM_Speed") <(
     echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
@@ -74,9 +74,12 @@ DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer") <(
 
 Drive_Manufacturer=$(echo "$LshwOutput" | grep -A10 "\*\-disk" | grep vendor | sed 's/.*vendor: //')
 Drive_Model=$(echo "$LshwOutput" | grep -A10 "\*\-disk" | grep 'product' | sed 's/.*product: //' )
+Drive_Size=$(lsblk | grep -m1 sda | awk '{print $4}' | sed 's/$/B/')
 
-Drive_Table=$(paste -d ';' <(echo "$Drive_Manufacturer ") <(echo "$Drive_Model") | 
-    column -N Manufacturer,Model -s ';' -o ' | ' -t)
+    # Creates a structured table to display Disk variables included above
+Drive_Table=$(paste -d ';' <(echo "$Drive_Manufacturer ") <(echo "$Drive_Model") <(
+    echo "$Drive_Size") | 
+    column -N Manufacturer,Model,Size -s ';' -o ' | ' -t)
 
 # Information extracted is provided in human-readable format using cat command
     # Tables are created to house relevant variables from above
