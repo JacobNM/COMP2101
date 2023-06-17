@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script is designed to provide output of computer information
+# Script is designed to provide output of computer information in human-readable formatting
 
 ## Checks is user is root; if not, prompts them to use sudo for commands
 # if [ "$(whoami)" != "root" ]; then echo "must be root (try "sudo" at beginning of script command)";exit 1; fi
@@ -9,23 +9,27 @@ source /etc/os-release
 
 ## Variable list
 
-# Inspection tools
+# Inspection tools - Used for variables below
 LshwOutput=$(sudo lshw)
 DmidecodeOutput=$(sudo dmidecode -t 17)
+# Tool is set up as an array to be used for separate variables below
 LscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
 
-# Basic Info variables
+# Provides current date
 Current_Time=$(date +"%I:%M%p %Z")
+# Searches for PC hostname 
 MY_FQDN=$(hostname -f)
+# Prints IP address of host (not including 127 networks)
 My_IP=$(hostname -I)
+# Checks root system for remaining available space
 Root_FileSystem_Space=$(df -h -t ext4 --output=avail | tail -1 | sed 's/  *//') 
 
-# System variables
+# System variables - Used to obtain personal computer information
 Computer_Manufacturer=$(sudo dmidecode -s system-manufacturer)
 Computer_Model=$(echo "$LshwOutput" | grep -m1 -w "product" | sed 's/.*product: //')
 Computer_Serial_Numer=$(echo "$LshwOutput" | grep -m1 -w "serial:" | sed 's/ *serial: //')
 
-# CPU variables
+# CPU variables - Used to obtain information on CPU from personal computer
 CPU_Manufacturer=$(echo "$LshwOutput" | grep -a2 cpu:0 | tail -n 1 | sed 's/.*product: //')
 CPU_Architecture=$(hostnamectl | grep Architecture | sed 's/  *Architecture: //')
 CPU_Max_Speed=$(echo "$LshwOutput" | grep -m1 capacity | sed 's/.*capacity: //')
@@ -34,7 +38,10 @@ CPU_L1_Cache_Size=$(${LscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/
 CPU_L2_Cache_Size=$(${LscpuVariants[2]} | grep L2 | sed 's/K/KB/')
 CPU_L3_Cache_Size=$(${LscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
 
-# RAM/DIMM variables
+# RAM/DIMM variables - Used to obtain information on installed memory components
+
+    # If specific information is not indicated in certain variables,
+        ## user is informed that output is N/A when using VMs
 DIMM_Manufacturer=$(echo "$DmidecodeOutput" | grep -m1 -i manufacturer | sed 's/.*Manufacturer: //')
 if [[ "${DIMM_Manufacturer}" == "Not Specified" ]]; then
     DIMM_Manufacturer="N/A with VMs"
@@ -53,15 +60,20 @@ if [[ "${DIMM_Speed}" == "Unknown" ]]; then
 fi
 
 DIMM_Location=$(echo "$LshwOutput" | grep -m1 'slot: RAM' | sed 's/.*slot: //')
-
+    
+    # Displays total RAM available to determine if all memory components are accounted for
 RAM_Total_Size=$(echo "$LshwOutput" | grep -A10 '\*\-memory' | grep -m1 size | sed 's/.*size: // ')
 
+    # Creates a structured table to output DIMM variables & RAM total memory included above
 DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(echo "$DIMM_Model ") <(echo "$DIMM_Size ") <(echo "$DIMM_Speed") <(echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
     column -N Manufacturer,Model,Size,Speed,Location,'Total RAM' -s ';' -t)
 
-# Script will Search for PC hostname, print available IP addresses of host (not including 127 networks)
-# checks available space in root system, displayed as human-friendly text output
-# Provided in template form using cat command
+# Disk Storage Variables
+
+
+
+# Information extracted is provided in human-readable format using cat command
+    # Tables are created to house relevant variables from above
 
 cat <<EOF
 
@@ -111,5 +123,5 @@ Disk Storage Information
 
 ========================
 
-
 EOF
+    #DIMM Table and Disk Storage tables are pre-made in corresponding variable sections above
