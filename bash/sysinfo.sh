@@ -9,13 +9,15 @@ source /etc/os-release
 
 ## Variable list
 
-# Inspection tools - Used for variables below
+# Inspection tools
+
 LshwOutput=$(sudo lshw)
 DmidecodeOutput=$(sudo dmidecode -t 17)
 # Tool is set up as an array to be used for separate variables below
 LscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
+    # Inspection tools used for variables created in sections below
 
-# Provides current date
+# Provides current time and timezone
 Current_Time=$(date +"%I:%M%p %Z")
 # Searches for PC hostname 
 MY_FQDN=$(hostname -f)
@@ -39,7 +41,6 @@ CPU_L2_Cache_Size=$(${LscpuVariants[2]} | grep L2 | sed 's/K/KB/')
 CPU_L3_Cache_Size=$(${LscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
 
 # RAM/DIMM variables - Used to obtain information on installed memory components
-
     # If specific information is not indicated in certain variables,
         ## user is informed that output is N/A when using VMs
 DIMM_Manufacturer=$(echo "$DmidecodeOutput" | grep -m1 -i manufacturer | sed 's/.*Manufacturer: //')
@@ -65,7 +66,9 @@ DIMM_Location=$(echo "$LshwOutput" | grep -m1 'slot: RAM' | sed 's/.*slot: //')
 RAM_Total_Size=$(echo "$LshwOutput" | grep -A10 '\*\-memory' | grep -m1 size | sed 's/.*size: // ')
 
     # Creates a structured table to output DIMM variables & RAM total memory included above
-DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(echo "$DIMM_Model ") <(echo "$DIMM_Size ") <(echo "$DIMM_Speed") <(echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
+DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(
+    echo "$DIMM_Model ") <(echo "$DIMM_Size ") <(echo "$DIMM_Speed") <(
+    echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
     column -N Manufacturer,Model,Size,Speed,Location,'Total RAM' -s ';' -t)
 
 # Disk Storage Variables
@@ -74,6 +77,7 @@ DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(echo "$DIMM_Model ") <
 
 # Information extracted is provided in human-readable format using cat command
     # Tables are created to house relevant variables from above
+    # DIMM Table and Disk Storage tables are pre-made in corresponding variable sections above
 
 cat <<EOF
 
@@ -124,4 +128,4 @@ Disk Storage Information
 ========================
 
 EOF
-    #DIMM Table and Disk Storage tables are pre-made in corresponding variable sections above
+     
