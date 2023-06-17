@@ -22,25 +22,25 @@ Root_FileSystem_Space=$(df -h -t ext4 --output=avail | tail -1 | sed 's/  *//')
 
 # System variables
 Computer_Manufacturer=$(sudo dmidecode -s system-manufacturer)
-Computer_Model=$(echo "$LshwOutput" | grep -w "product" | head -n 1 | sed 's/.*product: //')
-Computer_Serial_Numer=$(echo "$LshwOutput" | grep -w "serial:" | head -n 1 | sed 's/ *serial: //')
+Computer_Model=$(echo "$LshwOutput" | grep -m1 -w "product" | sed 's/.*product: //')
+Computer_Serial_Numer=$(echo "$LshwOutput" | grep -m1 -w "serial:" | sed 's/ *serial: //')
 
 # CPU variables
 CPU_Manufacturer=$(echo "$LshwOutput" | grep -a2 cpu:0 | tail -n 1 | sed 's/.*product: //')
 CPU_Architecture=$(hostnamectl | grep Architecture | sed 's/  *Architecture: //')
-CPU_Max_Speed=$(echo "$LshwOutput" | grep capacity | head -n 1 | sed 's/.*capacity: //')
+CPU_Max_Speed=$(echo "$LshwOutput" | grep -m1 capacity | sed 's/.*capacity: //')
 CPU_Total_Cores=$(( $(${LscpuVariants[1]} | awk '/^Socket\(s\)/{ print $2 }') * $(lscpu | awk '/^Core\(s\) per socket/{ print $4 }') ))
 CPU_L1_Cache_Size=$(${LscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/                                 L1/')
 CPU_L2_Cache_Size=$(${LscpuVariants[2]} | grep L2 | sed 's/K/KB/')
 CPU_L3_Cache_Size=$(${LscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
 
 # RAM/DIMM variables
-DIMM_Manufacturer=$(echo "$DmidecodeOutput" | grep -i manufacturer | head -n1 | sed 's/.*Manufacturer: //')
+DIMM_Manufacturer=$(echo "$DmidecodeOutput" | grep -m1 -i manufacturer | sed 's/.*Manufacturer: //')
 if [[ "${DIMM_Manufacturer}" == "Not Specified" ]]; then
     DIMM_Manufacturer="N/A with VMs"
 fi
 
-DIMM_Model=$(echo "$DmidecodeOutput" | grep -w "Serial Number" | head -n1 | sed 's/.*Serial Number: //')
+DIMM_Model=$(echo "$DmidecodeOutput" | grep -m1 -w "Serial Number" | sed 's/.*Serial Number: //')
 if [[ "${DIMM_Model}" == "Not Specified" ]]; then
     DIMM_Model="N/A with VMs"
 fi
@@ -54,8 +54,10 @@ fi
 
 DIMM_Location=$(echo "$LshwOutput" | grep -m1 'slot: RAM' | sed 's/.*slot: //')
 
-DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(echo "$DIMM_Model ") <(echo "$DIMM_Size ") <(echo "$DIMM_Speed") <(echo "$DIMM_Location") |
-    column -N Manufacturer,Model,Size,Speed,Location -s ';' -t)
+RAM_Total_Size=$(echo "$LshwOutput" | grep -A10 '\*\-memory' | grep -m1 size | sed 's/.*size: // ')
+
+DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(echo "$DIMM_Model ") <(echo "$DIMM_Size ") <(echo "$DIMM_Speed") <(echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
+    column -N Manufacturer,Model,Size,Speed,Location,'Total RAM' -s ';' -t)
 
 # Script will Search for PC hostname, print available IP addresses of host (not including 127 networks)
 # checks available space in root system, displayed as human-friendly text output
@@ -97,10 +99,11 @@ Version:                         $VERSION
 ============================
 
 RAM Information
-===============
+==========================================================================
+                            Installed DIMMs
 $DIMM_Table
 
-===============    
+==========================================================================
 
 Disk Storage Information
 ========================
