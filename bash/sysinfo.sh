@@ -47,8 +47,6 @@ fi
 
 RAM_Size=$(echo "$LshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
 
-
-
 RAM_Table=$(paste -d ';' <(echo "$RAM_Manufacturer ") <(echo "$RAM_Model ") <(echo "$RAM_Size ") |
     column -N Manufacturer,Model,Size -s ';' -t)
 
