@@ -7,10 +7,9 @@
 # Grabs operating system release file for utilization of variables contained within
 source /etc/os-release
 
-## Variable list
+## Variable lists
 
 # Inspection tools
-
 LshwOutput=$(sudo lshw)
 DmidecodeOutput=$(sudo dmidecode -t 17)
 # Tool is set up as an array to be used for separate variables below
@@ -66,14 +65,18 @@ DIMM_Location=$(echo "$LshwOutput" | grep -m1 'slot: RAM' | sed 's/.*slot: //')
 RAM_Total_Size=$(echo "$LshwOutput" | grep -A10 '\*\-memory' | grep -m1 size | sed 's/.*size: // ')
 
     # Creates a structured table to output DIMM variables & RAM total memory included above
-DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer ") <(
-    echo "$DIMM_Model ") <(echo "$DIMM_Size ") <(echo "$DIMM_Speed") <(
+DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer") <(
+    echo "$DIMM_Model") <(echo "$DIMM_Size") <(echo "$DIMM_Speed") <(
     echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
-    column -N Manufacturer,Model,Size,Speed,Location,'Total RAM' -s ';' -t)
+    column -N Manufacturer,Model,Size,Speed,Location,'Total RAM' -s ';' -o ' | ' -t)
 
 # Disk Storage Variables
 
+Drive_Manufacturer=$(echo "$LshwOutput" | grep -A10 "\*\-disk" | grep vendor | sed 's/.*vendor: //')
+Drive_Model=$(echo "$LshwOutput" | grep -A10 "\*\-disk" | grep 'product' | sed 's/.*product: //' )
 
+Drive_Table=$(paste -d ';' <(echo "$Drive_Manufacturer ") <(echo "$Drive_Model") | 
+    column -N Manufacturer,Model -s ';' -o ' | ' -t)
 
 # Information extracted is provided in human-readable format using cat command
     # Tables are created to house relevant variables from above
@@ -123,7 +126,8 @@ $DIMM_Table
 
 Disk Storage Information
 ========================
-
+                            Installed Drives
+$Drive_Table
 
 ========================
 
