@@ -47,7 +47,7 @@ EOF
 # Gathers required properties information from os-release and compiles into osreport function
 function osreport {
 
-# Inputs data gathered in function into human-readable template 
+# Inputs data to be stored in function (from os-release) into human-readable template 
 cat << EOF
                  
                  **OS Report**
@@ -61,13 +61,13 @@ EOF
 # Function used to gather information on RAM properties
 function ramreport {
     DIMM_Manufacturer=$(echo "$DmidecodeOutput" | grep -m1 -i manufacturer | sed 's/.*Manufacturer: //')
-    # Determines if manufacturer is specified; if not, user is informed they may be using a VM
+    # Determines if manufacturer is specified; if not, user is informed that info is N/A in VM
     if [[ "${DIMM_Manufacturer}" == "Not Specified" ]]; then
         DIMM_Manufacturer="N/A with VMs"
     fi
 
     DIMM_Model=$(echo "$DmidecodeOutput" | grep -m1 -w "Serial Number" | sed 's/.*Serial Number: //')
-     # Determines if Serial number is specified; if not, user is informed they may be using a VM
+     # Determines if Serial number is specified; if not, user is informed that info is N/A in VM
     if [[ "${DIMM_Model}" == "Not Specified" ]]; then
         DIMM_Model="N/A with VMs"
     fi
@@ -75,23 +75,23 @@ function ramreport {
     DIMM_Size=$(echo "$LshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
 
     DIMM_Speed=$(echo "$DmidecodeOutput" | grep -m1 Speed | sed 's/.*Speed: //')
-    # Determines if speed is known; if not, user is informed they may be using a VM
+    # Determines if speed is known; if not, user is informed that info is N/A in VM
     if [[ "${DIMM_Speed}" == "Unknown" ]]; then
        DIMM_Speed="N/A with VMs"
     fi
     
     DIMM_Location=$(echo "$LshwOutput" | grep -m1 'slot: RAM' | sed 's/.*slot: //')
 
-        # Displays total RAM available to determine if all memory components are accounted for
+        # Displays total RAM available
     RAM_Total_Size=$(echo "$LshwOutput" | grep -A10 '\*\-memory' | grep -m1 size | sed 's/.*size: // ')
 
-        # Creates a structured table to display DIMM variables & RAM total memory included above
+        # Creates a structured table to display DIMM & "RAM total size" variables included above
     DIMM_Table=$(paste -d ';' <(echo "$DIMM_Manufacturer") <(
         echo "$DIMM_Model") <(echo "$DIMM_Size") <(echo "$DIMM_Speed") <(
         echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
         column -N Manufacturer,Model,Size,Speed,Location,'Total RAM' -s ';' -o ' | ' -t)   
 
-# Inputs data from ramreport function into human-readable template
+# Inputs data gathered in ramreport table into human-readable template
 cat << EOF
 
                              **RAM Report**
@@ -118,7 +118,7 @@ Video Card Model:               $Videocard_Model
 EOF
 }
 
-# Function used to gather information on disk drive properties
+# Function used to gather information on available disk drive properties
 function diskreport { 
     Drive_Partition_0=$(echo "$LsblkOutput" | grep -w "sda" | awk '{print$1}')
     Drive_Partition_1=$(echo "$LsblkOutput" | grep -w "sda1" | awk '{print$1}')
