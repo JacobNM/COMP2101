@@ -88,5 +88,6 @@ if [[ "$Full_Report" == true ]]; then
     diskreport
     networkreport
 fi
+# Provides information on who accessed the system information, and the time of day
 Current_Time=$(date +"%I:%M %p %Z")
 echo "System info produced by $USER at $Current_Time"
