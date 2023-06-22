@@ -95,7 +95,9 @@ function ramreport {
 cat << EOF
 
                              **RAM Report**
+                            ---------------- 
                             *Installed DIMMs*
+                           ------------------- 
 
 $DIMM_Table
 EOF
@@ -176,7 +178,9 @@ function diskreport {
 cat << EOF
                                    
                                                   **Disk Report**
+                                                 -----------------
                                                 *Installed Drives*
+                                               -------------------- 
 
 $Drive_Table
 EOF
