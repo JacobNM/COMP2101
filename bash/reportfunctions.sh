@@ -1,6 +1,6 @@
 ## Function Library created for sysinfo.sh script
 
-# Function used to gather information on CPU
+# Function used to gather information on CPU properties
 function cpureport {
     CPU_Manufacturer=$(echo "$LshwOutput" | grep -a2 cpu:0 | tail -n 1 | sed 's/.*product: //')
     CPU_Architecture=$(hostnamectl | grep Architecture | sed 's/  *Architecture: //')
@@ -22,9 +22,11 @@ CPU Max Speed:                  $CPU_Max_Speed
 CPU L1 Cache Size:              $CPU_L1_Cache_Size
 CPU L2 Cache Size:              $CPU_L2_Cache_Size
 CPU L3 Cache Size:              $CPU_L3_Cache_Size
+
 EOF
 }
 
+# Function used to gather information on Computer properties
 function computerreport {
     Computer_Manufacturer=$(dmidecode -s system-manufacturer)
     Computer_Model=$(echo "$LshwOutput" | grep -m1 -w "product" | sed 's/.*product: //')
@@ -38,11 +40,14 @@ cat << EOF
 Manufacturer/Vendor:            $Computer_Manufacturer
 Computer Description:           $Computer_Model
 Computer Serial Number:         $Computer_Serial_Numer
+
 EOF
 }
 
+# Gathers required properties information from os-release and compiles into osreport function
 function osreport {
-# Inputs data gathered from os-release into human-readable template 
+
+# Inputs data gathered in function into human-readable template 
 cat << EOF
                  
                  **OS Report**
@@ -53,13 +58,16 @@ Version:                        $VERSION
 EOF
 }
 
+# Function used to gather information on RAM properties
 function ramreport {
     DIMM_Manufacturer=$(echo "$DmidecodeOutput" | grep -m1 -i manufacturer | sed 's/.*Manufacturer: //')
+    # Determines if manufacturer is specified; if not, user is informed they may be using a VM
     if [[ "${DIMM_Manufacturer}" == "Not Specified" ]]; then
         DIMM_Manufacturer="N/A with VMs"
     fi
 
     DIMM_Model=$(echo "$DmidecodeOutput" | grep -m1 -w "Serial Number" | sed 's/.*Serial Number: //')
+     # Determines if Serial number is specified; if not, user is informed they may be using a VM
     if [[ "${DIMM_Model}" == "Not Specified" ]]; then
         DIMM_Model="N/A with VMs"
     fi
@@ -67,6 +75,7 @@ function ramreport {
     DIMM_Size=$(echo "$LshwOutput" | grep -i -A9 "\*\-memory" | tail -n1 | sed 's/.*size: //')
 
     DIMM_Speed=$(echo "$DmidecodeOutput" | grep -m1 Speed | sed 's/.*Speed: //')
+    # Determines if speed is known; if not, user is informed they may be using a VM
     if [[ "${DIMM_Speed}" == "Unknown" ]]; then
        DIMM_Speed="N/A with VMs"
     fi
@@ -81,6 +90,8 @@ function ramreport {
         echo "$DIMM_Model") <(echo "$DIMM_Size") <(echo "$DIMM_Speed") <(
         echo "$DIMM_Location") <(echo "$RAM_Total_Size") |
         column -N Manufacturer,Model,Size,Speed,Location,'Total RAM' -s ';' -o ' | ' -t)   
+
+# Inputs data from ramreport function into human-readable template
 cat << EOF
 
                              **RAM Report**
@@ -90,9 +101,12 @@ $DIMM_Table
 EOF
 }
 
+# Function used to gather information on video card manufacturer and model
 function videoreport {
     Videocard_Manufacturer=$(echo "$LshwOutput" | grep -A12 display | grep vendor | sed 's/.*vendor: //')
     Videocard_Model=$(echo "$LshwOutput" | grep -A12 display | grep product | sed 's/.*product: //')
+
+# Inputs data from videoreport function into human-readable template
 cat << EOF
 
                      **Video Report**
@@ -102,6 +116,7 @@ Video Card Model:               $Videocard_Model
 EOF
 }
 
+# Function used to gather information on disk drive properties
 function diskreport { 
     Drive_Partition_0=$(echo "$LsblkOutput" | grep -w "sda" | awk '{print$1}')
     Drive_Partition_1=$(echo "$LsblkOutput" | grep -w "sda1" | awk '{print$1}')
@@ -126,7 +141,7 @@ function diskreport {
     Drive_Free_Space_sda2=$(df -h | grep -w 'sda2' | awk '{print$4}' | sed 's/$/B/') 
     Drive_Free_Space_sda3=$(df -h | grep -w 'sda3' | awk '{print$4}' | sed 's/$/B/') 
 
-        # If drive mountpoint is blank/empty, user receives an N/A in drive table
+        # If any drive mountpoints are blank/empty, user receives an N/A in drive table
     Drive_Mntpt_0=$(echo "$LsblkOutput" | grep -w "sda" | awk '{print$7}')
     if [[ "${Drive_Mntpt_0}" == "" ]]; then
         Drive_Mntpt_0="N/A"
@@ -138,7 +153,7 @@ function diskreport {
     Drive_Mntpt_2=$(df -h | grep -w 'sda2' | awk '{print$6}')
     Drive_Mntpt_3=$(df -ah | grep 'sda3' | tail -n1 | awk '{print$6}')
 
-        # Creates a structured table to display Disk variables included above
+        # Creates a structured table to display Disk variables from diskreport function
             # First Column of table
     Drive_Table=$(paste -d ';' <(echo "$Drive_Partition_0" ; echo "$Drive_Partition_1" ; 
         echo "$Drive_Partition_2" ; echo "$Drive_Partition_3" ) <(
@@ -157,7 +172,7 @@ function diskreport {
         # column cmd used to create table from variables gathered above
     column -N 'Logical Name (/dev/sda)',Vendor,Model,Size,'Filesystem Size','Filesystem Free Space','Mount Point' -s ';' -o ' | ' -t)
 
-# Places disk report info a readable template form
+# Places disk report table info into a readable template form
 cat << EOF
                                    
                                                   **Disk Report**
@@ -167,6 +182,7 @@ $Drive_Table
 EOF
 }
 
+# Function used to gather information on network properties
 function networkreport {
     Interface_Manufacturer=$(echo "$LshwOutput" | grep -A12 network | grep vendor | sed 's/.*vendor: //' )
     Interface_Model=$(echo "$LshwOutput" | grep -A12 network | grep product | sed 's/.*product: //')
@@ -174,6 +190,7 @@ function networkreport {
     Interface_Speed=$(ethtool "*" | grep -m1 Speed | sed 's/.*Speed: //')
     Interface_IP=$(ip a | grep -A6 "^2: " | grep -w inet | awk '{print$2}')
 
+# Inputs data from networkreport function into human-readable template
 cat << EOF
 
                  **Network Report**
@@ -187,7 +204,10 @@ Interface IP:                   $Interface_IP
 EOF
 }
 
+# Function to offer assistance to script users
 function displayhelp {
+
+# Inputs information for help function into human-readable template
     cat << EOF
 
     **sysinfo.sh Help**
