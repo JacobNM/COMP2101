@@ -25,6 +25,7 @@ Network_Report=false
 Full_Report=true
 
 # loop created to filter through any extra commands on command line
+# Loop activates any valid options for script designated from user, and notifies user if they enter an invalid option
 while [ $# -gt 0 ]; do
     case ${1} in
         -h)
@@ -55,6 +56,8 @@ done
 
 # Check to see which reports have been requested on command line;
 # If no additional arguments selected, run full report
+    # Script uses a series of if conditional statements, instead of if/elif/else
+    # Allows for multiple valid options to be enterred by user on command line
 if [[ $verbose == true ]]; then
    Full_Report=false
    error-message 
