@@ -5,26 +5,24 @@
 ## Checks is user is root; if not, prompts them to use sudo for commands
 if [ "$(whoami)" != "root" ]; then echo "must be root (try 'sudo' at beginning of script command)";exit 1; fi
 
-# Grabs operating system release file and function list script for utilization of variables contained within
-# Script is designed to provide output of computer information in human-readable formatting
+# Grabs operating system release file and function list script for utilization of variables contained within;
 source /etc/os-release
 source reportfunctions.sh
 
 # Inspection tools
 LshwOutput=$(lshw)
 DmidecodeOutput=$(dmidecode -t 17)
-# Tools are set up as arrays to be used for separate variables below
-LscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
 LsblkOutput=$(lsblk -l)
+# Tool is set up as array to be used for separate variables in function library
+LscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
     # Inspection tools used for variables created in sections below
-
 
 # default option values
 verbose=false
 System_Report=false
 Disk_Report=false
 Network_Report=false
-
+Full_Report=true
 # loop created to filter for extra commands on command line
 while [ $# -gt 0 ]; do
     case ${1} in
@@ -57,18 +55,30 @@ done
 # Check to see which reports have been requested on command line;
 # If no additional arguments selected, run full report
 if [[ $verbose == true ]]; then
+   Full_Report=false
    error-message 
-elif [[ "$System_Report" == true ]]; then
+fi
+
+if [[ "$System_Report" == true ]]; then
+    Full_Report=false
     computerreport
     osreport
     cpureport
     ramreport
     videoreport
-elif [[ "$Disk_Report" == true ]]; then
+fi
+
+if [[ "$Disk_Report" == true ]]; then
+    Full_Report=false
     diskreport
-elif [[ "$Network_Report" == true ]]; then
+fi
+
+if [[ "$Network_Report" == true ]]; then
+    Full_Report=false
     networkreport
-else
+fi
+
+if [[ "$Full_Report" == true ]]; then
     computerreport
     osreport
     cpureport
