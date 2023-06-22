@@ -10,12 +10,12 @@ source /etc/os-release
 source reportfunctions.sh
 
 # Inspection tools
+    # Inspection tools used for variables created in function library
 LshwOutput=$(lshw)
 DmidecodeOutput=$(dmidecode -t 17)
 LsblkOutput=$(lsblk -l)
 # Tool is set up as array to be used for separate variables in function library
 LscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
-    # Inspection tools used for variables created in sections below
 
 # default option values to help determine script behaviour
 verbose=false
@@ -24,7 +24,7 @@ Disk_Report=false
 Network_Report=false
 Full_Report=true
 
-# loop created to filter for extra commands on command line
+# loop created to filter through any extra commands on command line
 while [ $# -gt 0 ]; do
     case ${1} in
         -h)
@@ -88,3 +88,5 @@ if [[ "$Full_Report" == true ]]; then
     diskreport
     networkreport
 fi
+Current_Time=$(date +"%I:%M %p %Z")
+echo "System info produced by $USER at $Current_Time"
