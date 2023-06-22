@@ -1,6 +1,5 @@
 ## Function Library created for sysinfo.sh script
 
-
 # Function used to gather information on CPU
 function cpureport {
     CPU_Manufacturer=$(echo "$LshwOutput" | grep -a2 cpu:0 | tail -n 1 | sed 's/.*product: //')
@@ -10,6 +9,8 @@ function cpureport {
     CPU_L1_Cache_Size=$(${LscpuVariants[2]} | grep L1 | sed 's/K/KB/' | sed '2 s/L1/                                L1/')
     CPU_L2_Cache_Size=$(${LscpuVariants[2]} | grep L2 | sed 's/K/KB/')
     CPU_L3_Cache_Size=$(${LscpuVariants[2]} | grep L3 | sed 's/M/MB/' )
+
+# Inputs data from cpureport function into human-readable template 
 cat << EOF
 
                  **CPU Report**
@@ -28,6 +29,8 @@ function computerreport {
     Computer_Manufacturer=$(dmidecode -s system-manufacturer)
     Computer_Model=$(echo "$LshwOutput" | grep -m1 -w "product" | sed 's/.*product: //')
     Computer_Serial_Numer=$(echo "$LshwOutput" | grep -m1 -w "serial:" | sed 's/ *serial: //')   
+
+# Inputs data from computerreport function into human-readable template 
 cat << EOF
 
                      **Computer Report**
@@ -39,6 +42,7 @@ EOF
 }
 
 function osreport {
+# Inputs data gathered from os-release into human-readable template 
 cat << EOF
                  
                  **OS Report**
