@@ -17,12 +17,13 @@ LsblkOutput=$(lsblk -l)
 LscpuVariants=([1]="lscpu" [2]="lscpu --caches=NAME,ONE-SIZE")
     # Inspection tools used for variables created in sections below
 
-# default option values
+# default option values to help determine script behaviour
 verbose=false
 System_Report=false
 Disk_Report=false
 Network_Report=false
 Full_Report=true
+
 # loop created to filter for extra commands on command line
 while [ $# -gt 0 ]; do
     case ${1} in

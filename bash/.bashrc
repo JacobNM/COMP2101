@@ -115,4 +115,4 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-PATH=$PATH:~/COMP2101/bash/
+PATH=$PATH:~jacob/COMP2101/bash
